@@ -32,7 +32,7 @@
   "message.map_atlases.pin.info": "Удерживание Shift — править отметку.",
   "message.map_atlases.shear": "Вырезать или скопировать область",
   "message.map_atlases.shear.info": "Выберите область карты",
-  "message.map_atlases.shear.controls": "ЛКМ — вырезать и очистить   ПКМ — копировать в карту",
+  "message.map_atlases.shear.controls": "ЛКМ — вырезать из атласа   ПКМ — копировать в инвентарь",
   "message.map_atlases.marker_name": "Название метки",
   "message.map_atlases.marker_editor": "Новая метка",
   "message.map_atlases.marker_type": "Значок метки",
