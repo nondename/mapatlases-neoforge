@@ -28,6 +28,7 @@ import pepjebs.mapatlases.MapAtlasesMod;
 import pepjebs.mapatlases.client.MapAtlasesClient;
 import pepjebs.mapatlases.config.MapAtlasesClientConfig;
 import pepjebs.mapatlases.config.MapAtlasesConfig;
+import pepjebs.mapatlases.integration.moonlight.ClientMarkers;
 import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
@@ -83,6 +84,8 @@ public class AtlasOverviewScreen extends Screen {
     private boolean initialized = false;
     private CursorAction cursorAction;
     private Pair<MapDataHolder, ColumnPos> partialPin = null;
+    private MapDataHolder editingPinMap = null;
+    private String editingPinId = null;
     private PinButton pinButton;
 
     @NotNull
@@ -148,7 +151,7 @@ public class AtlasOverviewScreen extends Screen {
                 (height - 20) / 2 - 35,
                 220, 20,
                 Component.translatable("message.map_atlases.marker_name"),
-                this::addNewPin, this::cancelPinEditing);
+                this::addNewPin, this::deleteEditedPin, this::cancelPinEditing);
         //we manage this separately on its own
 
         this.sliceButton = new SliceBookmarkButton(
@@ -798,7 +801,10 @@ public class AtlasOverviewScreen extends Screen {
     public void placePinAt(ColumnPos pos) {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
+            editBox.setEditingExisting(false);
             editBox.setValue("");
+            this.editingPinMap = null;
+            this.editingPinId = null;
             this.partialPin = Pair.of(selected, pos);
             // LoM: always open the marker editor. The old behaviour placed a
             // pin immediately and hid icon selection behind modifiers/scrolling.
@@ -816,22 +822,46 @@ public class AtlasOverviewScreen extends Screen {
         if (!on && isPinOnly) this.onClose();
     }
 
+    public void editPin(MapDataHolder map, String decorationId, Component name, int pinIndex) {
+        this.partialPin = null;
+        this.editingPinMap = map;
+        this.editingPinId = decorationId;
+        this.editBox.setEditingExisting(true);
+        this.editBox.setIndex(pinIndex);
+        this.editBox.setValue(name == null ? "" : name.getString());
+        focusEditBox(true);
+    }
+
     private void cancelPinEditing() {
         partialPin = null;
+        editingPinMap = null;
+        editingPinId = null;
+        editBox.setEditingExisting(false);
         editBox.setValue("");
         focusEditBox(false);
     }
 
-    // Actually places pin and updates screen accordingly.
+    private void deleteEditedPin() {
+        if (editingPinMap != null && editingPinId != null) {
+            ClientMarkers.deletePin(editingPinMap, editingPinId);
+            cancelPinEditing();
+            recalculateDecorationWidgets();
+        }
+    }
+
+    // Places a new pin or saves changes to an existing pin.
     private void addNewPin() {
+        String text = editBox.getValue().trim();
+        if (editingPinMap != null && editingPinId != null) {
+            ClientMarkers.updatePin(editingPinMap, editingPinId, text, editBox.getIndex());
+            cancelPinEditing();
+            recalculateDecorationWidgets();
+            return;
+        }
         if (partialPin != null) {
-            String text = editBox.getValue().trim();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
-            // Keep the selected icon for the next marker instead of
-            // automatically cycling to another colour/type.
             focusEditBox(false);
             partialPin = null;
-
             this.recalculateDecorationWidgets();
         }
     }
