@@ -3,6 +3,7 @@ package pepjebs.mapatlases.client.screen;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -80,9 +81,18 @@ public abstract class DecorationBookmarkButton extends BookmarkButton {
         }
     }
 
-    //@Override
     public void onClick(double mouseX, double mouseY, int button) {
         onClick(mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!this.active || !this.visible || !isValidClickButton(button) || !this.clicked(mouseX, mouseY)) {
+            return false;
+        }
+        this.playDownSound(Minecraft.getInstance().getSoundManager());
+        this.onClick(mouseX, mouseY, button);
+        return true;
     }
 
     protected abstract void deleteMarker();
