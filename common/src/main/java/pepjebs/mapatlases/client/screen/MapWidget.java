@@ -265,8 +265,17 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
                 mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.7F, 2f));
             } else if (mapScreen.isShearing()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
-                mapScreen.shearMapAt(pos);
-                mapScreen.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.SHEEP_SHEAR, 1.7F, 2f));
+                if (pButton == 0) {
+                    mapScreen.shearMapAt(pos);
+                    mapScreen.getMinecraft().getSoundManager().play(
+                            SimpleSoundInstance.forUI(SoundEvents.SHEEP_SHEAR, 1.7F, 2f));
+                } else if (pButton == 1) {
+                    mapScreen.copyMapAt(pos);
+                    mapScreen.getMinecraft().getSoundManager().play(
+                            SimpleSoundInstance.forUI(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.2F, 1.4F));
+                } else {
+                    return false;
+                }
             } else if (mapScreen.canTeleport()) {
                 ColumnPos pos = getHoveredPos(mouseX, mouseY);
                 Slice slice = mapScreen.getSelectedSlice();
