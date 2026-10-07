@@ -210,7 +210,7 @@ public class ClientMarkers {
         ((ExpandedMapData) holder.data).addCustomMarker(marker);
     }
 
-    protected static MapDecorationType<?, ?> getPinWithIndex(int index) {
+    public static MapDecorationType<?, ?> getPinWithIndex(int index) {
         Optional<HolderSet.Named<MapDecorationType<?, ?>>> tag =
                 MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
 
@@ -223,6 +223,53 @@ public class ClientMarkers {
         return pins.get(Math.floorMod(index, pins.size())).value();
     }
 
+
+    public static int getPinIndex(MapDecorationType<?, ?> type) {
+        Optional<HolderSet.Named<MapDecorationType<?, ?>>> tag =
+                MapDataRegistry.getRegistry(Utils.hackyGetRegistryAccess()).getTag(PINS);
+        if (tag.isEmpty()) return 0;
+        var pins = tag.get().stream()
+                .sorted(Comparator.comparing(h -> h.unwrapKey().orElseThrow().toString()))
+                .toList();
+        for (int i = 0; i < pins.size(); i++) {
+            if (pins.get(i).value() == type) return i;
+        }
+        return 0;
+    }
+
+    public static synchronized boolean updatePin(MapDataHolder holder, String key, String text, int index) {
+        var set = markersPerMap.get(holder.id);
+        if (set == null) return false;
+
+        MarkerHolder existing = set.stream()
+                .filter(m -> m.marker.getMarkerId().equals(key))
+                .findFirst().orElse(null);
+        if (existing == null) return false;
+
+        BlockPos pos = existing.marker.getPos();
+        set.remove(existing);
+
+        ExpandedMapData expanded = (ExpandedMapData) holder.data;
+        expanded.getCustomDecorations().remove(key);
+
+        MapBlockMarker<?> marker = getPinWithIndex(index).createEmptyMarker();
+        if (!text.isEmpty()) marker.setName(Component.literal(text));
+        marker.setPos(pos);
+
+        set.add(MarkerHolder.of(marker));
+        expanded.addCustomMarker(marker);
+        saveClientMarkers();
+        return true;
+    }
+
+    public static synchronized boolean deletePin(MapDataHolder holder, String key) {
+        boolean removed = removeClientDeco(holder.id, key);
+        if (removed) {
+            ((ExpandedMapData) holder.data).getCustomDecorations().remove(key);
+            saveClientMarkers();
+        }
+        return removed;
+    }
 
     public static synchronized boolean removeClientDeco(int mapId, String key) {
         var mr = markersPerMap.get(mapId);
