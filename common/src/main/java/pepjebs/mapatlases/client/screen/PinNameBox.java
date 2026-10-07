@@ -34,17 +34,21 @@ public class PinNameBox extends EditBox {
 
     private final Font font;
     private final Runnable onDone;
+    private final Runnable onDelete;
     private final Runnable onCancel;
 
     private int hoveredPin = -1;
     private boolean saveHovered = false;
+    private boolean deleteHovered = false;
     private boolean cancelHovered = false;
+    private boolean editingExisting = false;
 
     public PinNameBox(Font pFont, int pX, int pY, int pWidth, int pHeight,
-                      Component pMessage, Runnable onDone, Runnable onCancel) {
+                      Component pMessage, Runnable onDone, Runnable onDelete, Runnable onCancel) {
         super(pFont, pX, pY, pWidth, pHeight, pMessage);
         this.font = pFont;
         this.onDone = onDone;
+        this.onDelete = onDelete;
         this.onCancel = onCancel;
         this.active = false;
         this.visible = false;
@@ -55,6 +59,14 @@ public class PinNameBox extends EditBox {
 
     public int getIndex() {
         return currentIndex;
+    }
+
+    public void setIndex(int index) {
+        currentIndex = Math.floorMod(index, PIN_COUNT);
+    }
+
+    public void setEditingExisting(boolean editingExisting) {
+        this.editingExisting = editingExisting;
     }
 
     private int paletteWidth() {
@@ -75,6 +87,10 @@ public class PinNameBox extends EditBox {
 
     private int halfButtonWidth() {
         return (getWidth() - BUTTON_GAP) / 2;
+    }
+
+    private int thirdButtonWidth() {
+        return (getWidth() - BUTTON_GAP * 2) / 3;
     }
 
     @Override
@@ -126,18 +142,39 @@ public class PinNameBox extends EditBox {
         }
 
         int by = buttonsY();
-        int bw = halfButtonWidth();
-        int cancelX = getX() + bw + BUTTON_GAP;
+        if (editingExisting) {
+            int bw = thirdButtonWidth();
+            int deleteX = getX() + bw + BUTTON_GAP;
+            int cancelX = deleteX + bw + BUTTON_GAP;
 
-        saveHovered = mouseX >= getX() && mouseX < getX() + bw
-                && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
-        cancelHovered = mouseX >= cancelX && mouseX < cancelX + bw
-                && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+            saveHovered = mouseX >= getX() && mouseX < getX() + bw
+                    && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+            deleteHovered = mouseX >= deleteX && mouseX < deleteX + bw
+                    && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+            cancelHovered = mouseX >= cancelX && mouseX < cancelX + bw
+                    && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
 
-        renderButton(graphics, getX(), by, bw, BUTTON_HEIGHT,
-                Component.translatable("gui.done"), saveHovered);
-        renderButton(graphics, cancelX, by, bw, BUTTON_HEIGHT,
-                Component.translatable("gui.cancel"), cancelHovered);
+            renderButton(graphics, getX(), by, bw, BUTTON_HEIGHT,
+                    Component.translatable("message.map_atlases.marker.save"), saveHovered);
+            renderButton(graphics, deleteX, by, bw, BUTTON_HEIGHT,
+                    Component.translatable("message.map_atlases.marker.delete"), deleteHovered);
+            renderButton(graphics, cancelX, by, bw, BUTTON_HEIGHT,
+                    Component.translatable("gui.cancel"), cancelHovered);
+        } else {
+            int bw = halfButtonWidth();
+            int cancelX = getX() + bw + BUTTON_GAP;
+
+            saveHovered = mouseX >= getX() && mouseX < getX() + bw
+                    && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+            deleteHovered = false;
+            cancelHovered = mouseX >= cancelX && mouseX < cancelX + bw
+                    && mouseY >= by && mouseY < by + BUTTON_HEIGHT;
+
+            renderButton(graphics, getX(), by, bw, BUTTON_HEIGHT,
+                    Component.translatable("gui.done"), saveHovered);
+            renderButton(graphics, cancelX, by, bw, BUTTON_HEIGHT,
+                    Component.translatable("gui.cancel"), cancelHovered);
+        }
 
         pose.popPose();
     }
@@ -182,18 +219,39 @@ public class PinNameBox extends EditBox {
         }
 
         int by = buttonsY();
-        int bw = halfButtonWidth();
         if (mouseY >= by && mouseY < by + BUTTON_HEIGHT) {
-            if (mouseX >= getX() && mouseX < getX() + bw) {
-                playClick();
-                onDone.run();
-                return true;
-            }
-            int cancelX = getX() + bw + BUTTON_GAP;
-            if (mouseX >= cancelX && mouseX < cancelX + bw) {
-                playClick();
-                onCancel.run();
-                return true;
+            if (editingExisting) {
+                int bw = thirdButtonWidth();
+                int deleteX = getX() + bw + BUTTON_GAP;
+                int cancelX = deleteX + bw + BUTTON_GAP;
+                if (mouseX >= getX() && mouseX < getX() + bw) {
+                    playClick();
+                    onDone.run();
+                    return true;
+                }
+                if (mouseX >= deleteX && mouseX < deleteX + bw) {
+                    playClick();
+                    onDelete.run();
+                    return true;
+                }
+                if (mouseX >= cancelX && mouseX < cancelX + bw) {
+                    playClick();
+                    onCancel.run();
+                    return true;
+                }
+            } else {
+                int bw = halfButtonWidth();
+                if (mouseX >= getX() && mouseX < getX() + bw) {
+                    playClick();
+                    onDone.run();
+                    return true;
+                }
+                int cancelX = getX() + bw + BUTTON_GAP;
+                if (mouseX >= cancelX && mouseX < cancelX + bw) {
+                    playClick();
+                    onCancel.run();
+                    return true;
+                }
             }
         }
 
