@@ -400,9 +400,31 @@ public class AtlasOverviewScreen extends Screen {
         else if (isShearing()) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 25);
-            graphics.drawCenteredString(this.font,
-                    Component.translatable("message.map_atlases.shear.controls"),
-                    width / 2, (height + BOOK_HEIGHT) / 2 + 8, 0xFFFFFF);
+
+            Component cutLine = Component.translatable("message.map_atlases.shear.cut");
+            Component copyLine = Component.translatable("message.map_atlases.shear.copy");
+            Component exitLine = Component.translatable("message.map_atlases.shear.exit");
+
+            int helpY = (int) (height / 2f + (BOOK_HEIGHT * globalScale) / 2f + 9);
+            helpY = Math.min(helpY, height - 42);
+
+            int textWidth = Math.max(this.font.width(cutLine),
+                    Math.max(this.font.width(copyLine), this.font.width(exitLine)));
+            int boxHalfWidth = textWidth / 2 + 7;
+            int lineHeight = this.font.lineHeight + 2;
+            int boxHeight = lineHeight * 3 + 5;
+
+            graphics.fill(width / 2 - boxHalfWidth, helpY - 3,
+                    width / 2 + boxHalfWidth, helpY - 3 + boxHeight,
+                    0xB0101010);
+
+            graphics.drawCenteredString(this.font, cutLine,
+                    width / 2, helpY, 0xFFFFFF);
+            graphics.drawCenteredString(this.font, copyLine,
+                    width / 2, helpY + lineHeight, 0xFFFFFF);
+            graphics.drawCenteredString(this.font, exitLine,
+                    width / 2, helpY + lineHeight * 2, 0xBFBFBF);
+
             poseStack.popPose();
         }
 
