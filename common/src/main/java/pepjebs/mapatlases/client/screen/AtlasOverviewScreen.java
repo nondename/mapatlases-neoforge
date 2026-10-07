@@ -316,6 +316,14 @@ public class AtlasOverviewScreen extends Screen {
     }
 
     @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (editBox != null && editBox.active) {
+            return editBox.charTyped(codePoint, modifiers);
+        }
+        return super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta) {
         PoseStack poseStack = graphics.pose();
 
