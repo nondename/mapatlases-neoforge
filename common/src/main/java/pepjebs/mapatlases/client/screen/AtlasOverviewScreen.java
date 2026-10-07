@@ -32,6 +32,7 @@ import pepjebs.mapatlases.integration.moonlight.MoonlightCompat;
 import pepjebs.mapatlases.item.MapAtlasItem;
 import pepjebs.mapatlases.map_collection.IMapCollection;
 import pepjebs.mapatlases.map_collection.MapKey;
+import pepjebs.mapatlases.networking.C2SCopyMapPacket;
 import pepjebs.mapatlases.networking.C2SRemoveMapPacket;
 import pepjebs.mapatlases.networking.C2SSelectSlicePacket;
 import pepjebs.mapatlases.networking.C2STakeAtlasPacket;
