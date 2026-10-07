@@ -284,6 +284,10 @@ public class AtlasOverviewScreen extends Screen {
             cancelPinEditing();
             return true;
         }
+        if (pKeyCode == 256 && cursorAction != CursorAction.NONE) {
+            clearCursorAction();
+            return true;
+        }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) {
                 this.toggleCursorAction(CursorAction.PLACING_PIN);
@@ -396,7 +400,16 @@ public class AtlasOverviewScreen extends Screen {
 
         if (editBox.active) editBox.render(graphics, mouseX, mouseY, delta);
 
-        else if (MapAtlasesClientConfig.worldMapCrossair.get()) {
+        else if (isShearing()) {
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 25);
+            graphics.drawCenteredString(this.font,
+                    Component.translatable("message.map_atlases.shear.controls"),
+                    width / 2, (height + BOOK_HEIGHT) / 2 + 8, 0xFFFFFF);
+            poseStack.popPose();
+        }
+
+        if (!editBox.active && MapAtlasesClientConfig.worldMapCrossair.get()) {
             poseStack.pushPose();
             poseStack.translate(0, 0, 5);
             RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
@@ -748,9 +761,17 @@ public class AtlasOverviewScreen extends Screen {
         MapDataHolder selected = findMapContaining(pos.x(), pos.z());
         if (selected != null) {
             MapAtlasesNetworking.CHANNEL.sendToServer(new C2SRemoveMapPacket(selected.id));
-            //also remove immediately
+            // Also remove immediately on the client for responsive UI.
             currentMaps.remove(selected);
             recalculateDecorationWidgets();
+        }
+        this.clearCursorAction();
+    }
+
+    public void copyMapAt(ColumnPos pos) {
+        MapDataHolder selected = findMapContaining(pos.x(), pos.z());
+        if (selected != null) {
+            MapAtlasesNetworking.CHANNEL.sendToServer(new C2SCopyMapPacket(selected.id));
         }
         this.clearCursorAction();
     }
