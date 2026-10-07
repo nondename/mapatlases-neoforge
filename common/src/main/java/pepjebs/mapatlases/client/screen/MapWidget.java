@@ -132,7 +132,9 @@ public class MapWidget extends AbstractAtlasWidget implements Renderable, GuiEve
         }
 
         if (this.isHovered && !mapScreen.isEditingText()) {
-            this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
+            if (!mapScreen.isShearing()) {
+                this.renderPositionText(graphics, mc.font, pMouseX, pMouseY);
+            }
 
             if (mapScreen.canTeleport()) {
                 graphics.renderTooltip(mc.font,
