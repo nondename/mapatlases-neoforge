@@ -6,6 +6,10 @@ on:
       - "lom/1.20.1-markers"
   workflow_dispatch:
 
+concurrency:
+  group: lom-map-atlases-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
