@@ -32,7 +32,7 @@
   "message.map_atlases.pin.info": "Hold Shift to edit pin",
   "message.map_atlases.shear": "Remove a map",
   "message.map_atlases.shear.info": "Choose a map area to cut or copy",
-  "message.map_atlases.shear.controls": "LMB — cut and clear   RMB — copy to map",
+  "message.map_atlases.shear.controls": "LMB — cut from atlas   RMB — copy to inventory",
   "message.map_atlases.marker_name": "Marker Name",
   "message.map_atlases.marker_editor": "New marker",
   "message.map_atlases.marker_type": "Marker icon",
