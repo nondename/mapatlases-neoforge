@@ -143,10 +143,11 @@ public class AtlasOverviewScreen extends Screen {
         super.init();
 
         this.editBox = new PinNameBox(this.font,
-                (width - 100) / 2,
-                (height - 20) / 2,
-                100, 20,
-                Component.translatable("message.map_atlases.marker_name"), this::addNewPin);
+                (width - 220) / 2,
+                (height - 20) / 2 - 35,
+                220, 20,
+                Component.translatable("message.map_atlases.marker_name"),
+                this::addNewPin, this::cancelPinEditing);
         //we manage this separately on its own
 
         this.sliceButton = new SliceBookmarkButton(
@@ -280,12 +281,7 @@ public class AtlasOverviewScreen extends Screen {
     @Override
     public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
         if (pKeyCode == 256 && editBox.active) {
-            editBox.active = false;
-            editBox.visible = false;
-            partialPin = null;
-            if (isPinOnly) {
-                this.onClose();
-            }
+            cancelPinEditing();
             return true;
         }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
@@ -764,11 +760,9 @@ public class AtlasOverviewScreen extends Screen {
         if (selected != null) {
             editBox.setValue("");
             this.partialPin = Pair.of(selected, pos);
-            if (hasShiftDown() || hasAltDown()) {
-                focusEditBox(true);
-            } else {
-                addNewPin();
-            }
+            // LoM: always open the marker editor. The old behaviour placed a
+            // pin immediately and hid icon selection behind modifiers/scrolling.
+            focusEditBox(true);
         }
         this.clearCursorAction();
     }
@@ -782,12 +776,19 @@ public class AtlasOverviewScreen extends Screen {
         if (!on && isPinOnly) this.onClose();
     }
 
-    // Actually places pin and update screen accordingly
+    private void cancelPinEditing() {
+        partialPin = null;
+        editBox.setValue("");
+        focusEditBox(false);
+    }
+
+    // Actually places pin and updates screen accordingly.
     private void addNewPin() {
         if (partialPin != null) {
-            String text = editBox.getValue();
+            String text = editBox.getValue().trim();
             PinButton.placePin(partialPin.getFirst(), partialPin.getSecond(), text, editBox.getIndex());
-            editBox.increasePinIndex();
+            // Keep the selected icon for the next marker instead of
+            // automatically cycling to another colour/type.
             focusEditBox(false);
             partialPin = null;
 
