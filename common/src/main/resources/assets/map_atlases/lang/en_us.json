@@ -33,6 +33,8 @@
   "message.map_atlases.shear": "Remove a map",
   "message.map_atlases.shear.info": "Click on a map to remove it",
   "message.map_atlases.marker_name": "Marker Name",
+  "message.map_atlases.marker_editor": "New marker",
+  "message.map_atlases.marker_type": "Marker icon",
   "message.map_atlases.map_scale": "1:%dx",
   "message.map_atlases.map_index": "#: %s",
   "message.map_atlases.slice_height": "Y: %s",
