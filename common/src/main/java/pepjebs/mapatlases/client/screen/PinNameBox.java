@@ -83,10 +83,6 @@ public class PinNameBox extends EditBox {
         pose.pushPose();
         pose.translate(0, 0, 30);
 
-        graphics.drawCenteredString(font,
-                Component.translatable("message.map_atlases.marker_editor"),
-                getX() + getWidth() / 2, getY() - 15, 0xFFFFFF);
-
         graphics.drawString(font,
                 Component.translatable("message.map_atlases.marker_name"),
                 getX(), getY() - 2 - font.lineHeight, 0xDDDDDD, false);
