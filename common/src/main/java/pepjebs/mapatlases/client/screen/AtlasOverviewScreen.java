@@ -285,10 +285,6 @@ public class AtlasOverviewScreen extends Screen {
             cancelPinEditing();
             return true;
         }
-        if (pKeyCode == 256 && cursorAction != CursorAction.NONE) {
-            clearCursorAction();
-            return true;
-        }
         if (!MapAtlasesClient.PLACE_PIN_KEYBIND.isUnbound() && MapAtlasesClient.PLACE_PIN_KEYBIND.matches(pKeyCode, pScanCode)) {
             if (!isPinOnly && pinButton != null) {
                 this.toggleCursorAction(CursorAction.PLACING_PIN);
