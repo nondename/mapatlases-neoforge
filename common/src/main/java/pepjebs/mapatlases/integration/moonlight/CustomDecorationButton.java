@@ -68,7 +68,10 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     public void onClick(double mouseX, double mouseY, int button) {
-        if (control || button == 1) {
+        if (button == 1 && decoration instanceof PinDecoration) {
+            parentScreen.editPin(mapData, decorationId, decoration.getDisplayName(),
+                    ClientMarkers.getPinIndex(decoration.getType()));
+        } else if (control) {
             focusMarker();
         } else super.onClick(mouseX, mouseY);
     }
@@ -82,7 +85,7 @@ public class CustomDecorationButton extends DecorationBookmarkButton {
 
     @Override
     protected boolean isValidClickButton(int pButton) {
-        return (pButton == 0 && canDeleteMarker()) || (pButton == 1 && canFocusMarker());
+        return pButton == 0 || (pButton == 1 && decoration instanceof PinDecoration);
     }
 
     protected void focusMarker() {
