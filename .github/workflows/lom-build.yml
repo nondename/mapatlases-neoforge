@@ -1,0 +1,29 @@
+name: LoM Map Atlases 1.20.1 build
+
+on:
+  push:
+    branches:
+      - "lom/1.20.1-markers"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Build Forge jar
+        run: |
+          chmod +x gradlew
+          ./gradlew :forge:build --no-daemon
+      - name: Upload Forge jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: map-atlases-lom-1.20.1
+          path: forge/build/libs/*.jar
+          if-no-files-found: error
