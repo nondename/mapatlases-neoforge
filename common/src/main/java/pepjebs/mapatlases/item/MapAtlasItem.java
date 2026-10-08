@@ -40,6 +40,11 @@ public class MapAtlasItem extends Item {
     public static final String TYPE_NBT = "type";
 
     @Override
+    public boolean isFoil(ItemStack stack) {
+        return stack.isEnchanted() || super.isFoil(stack);
+    }
+
+    @Override
     public boolean isEnchantable(ItemStack stack) {
         return stack.getCount() == 1;
     }
@@ -70,6 +75,17 @@ public class MapAtlasItem extends Item {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag isAdvanced) {
         super.appendHoverText(stack, level, tooltip, isAdvanced);
+        // Visible cue in addition to vanilla's enchantment line.
+        if (stack.isEnchanted()) {
+            for (var enchantment : net.minecraft.world.item.enchantment.EnchantmentHelper.getEnchantments(stack).keySet()) {
+                if (enchantment instanceof net.minecraft.world.item.enchantment.Enchantment
+                        && net.minecraft.core.registries.BuiltInRegistries.ENCHANTMENT.getKey(enchantment).equals(MapAtlasesMod.res("fallen_spirit"))) {
+                    tooltip.add(Component.translatable("tooltip.map_atlases.fallen_spirit")
+                            .withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.BOLD));
+                    break;
+                }
+            }
+        }
 
         if (level != null) {
             IMapCollection maps = getMaps(stack, level);
