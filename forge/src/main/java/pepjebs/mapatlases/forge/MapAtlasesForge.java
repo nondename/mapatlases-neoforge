@@ -77,7 +77,7 @@ public class MapAtlasesForge {
     @SubscribeEvent
     public void onAtlasEnchantmentLevel(EnchantmentLevelSetEvent event) {
         if (event.getItem().getItem() instanceof pepjebs.mapatlases.item.MapAtlasItem
-                && event.getEnchantRow() == 3 && event.getPower() >= 6) {
+                && event.getEnchantRow() == 2 && event.getPower() >= 6) {
             event.setEnchantLevel(20);
         } else if (event.getItem().getItem() instanceof pepjebs.mapatlases.item.MapAtlasItem) {
             event.setEnchantLevel(0);
