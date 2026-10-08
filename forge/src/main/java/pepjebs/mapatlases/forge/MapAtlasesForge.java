@@ -60,6 +60,7 @@ public class MapAtlasesForge {
             MapAtlasesClient.cachePlayerState(event.player);
         } else {
             MapAtlasesServerEvents.onPlayerTick(event.player);
+            if (event.player instanceof ServerPlayer sp) restoreSavedAtlases(sp);
         }
     }
 
@@ -95,7 +96,9 @@ public class MapAtlasesForge {
         for (int i = 0; i < inv.getContainerSize(); i++) {
             ItemStack stack = inv.getItem(i);
             if (FallenSpirit.protects(stack)) {
-                saved.add(stack.save(new CompoundTag()));
+                CompoundTag entry = new CompoundTag();
+                entry.put("Stack", stack.save(new CompoundTag()));
+                saved.add(entry);
                 inv.setItem(i, ItemStack.EMPTY);
             }
         }
@@ -108,7 +111,11 @@ public class MapAtlasesForge {
                     for (int i = 0; i < stacks.getSlots(); i++) {
                         ItemStack stack = stacks.getStackInSlot(i);
                         if (FallenSpirit.protects(stack)) {
-                            saved.add(stack.save(new CompoundTag()));
+                            CompoundTag entry = new CompoundTag();
+                            entry.put("Stack", stack.save(new CompoundTag()));
+                            entry.putString("CuriosType", slotType);
+                            entry.putInt("CuriosSlot", i);
+                            saved.add(entry);
                             stacks.setStackInSlot(i, ItemStack.EMPTY);
                         }
                     }
@@ -118,19 +125,49 @@ public class MapAtlasesForge {
         if (!saved.isEmpty()) player.getPersistentData().put(SAVED_ATLASES, saved);
     }
 
+    // Transfer the saved stacks to the new player; restore on the next server tick
+    // so Curios has finished cloning/reinitializing its slot capabilities.
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onRespawnClone(PlayerEvent.Clone event) {
         if (!event.isWasDeath() || !(event.getEntity() instanceof ServerPlayer player)) return;
         CompoundTag oldData = event.getOriginal().getPersistentData();
-        if (!oldData.contains(SAVED_ATLASES, net.minecraft.nbt.Tag.TAG_LIST)) return;
-        var stacks = oldData.getList(SAVED_ATLASES, net.minecraft.nbt.Tag.TAG_COMPOUND);
-        for (int i = 0; i < stacks.size(); i++) {
-            ItemStack stack = ItemStack.of(stacks.getCompound(i));
-            if (!stack.isEmpty() && !player.getInventory().add(stack)) {
-                player.drop(stack, false);
-            }
+        if (oldData.contains(SAVED_ATLASES, net.minecraft.nbt.Tag.TAG_LIST)) {
+            player.getPersistentData().put(SAVED_ATLASES, oldData.getList(SAVED_ATLASES,
+                    net.minecraft.nbt.Tag.TAG_COMPOUND).copy());
+            oldData.remove(SAVED_ATLASES);
         }
-        oldData.remove(SAVED_ATLASES);
+    }
+
+    private void restoreSavedAtlases(ServerPlayer player) {
+        CompoundTag data = player.getPersistentData();
+        if (!data.contains(SAVED_ATLASES, net.minecraft.nbt.Tag.TAG_LIST)) return;
+        var saved = data.getList(SAVED_ATLASES, net.minecraft.nbt.Tag.TAG_COMPOUND);
+        for (int i = 0; i < saved.size(); i++) {
+            CompoundTag entry = saved.getCompound(i);
+            // Entries written before this feature stored ItemStack directly.
+            ItemStack stack = ItemStack.of(entry.contains("Stack", net.minecraft.nbt.Tag.TAG_COMPOUND)
+                    ? entry.getCompound("Stack") : entry);
+            if (stack.isEmpty()) continue;
+            boolean restored = false;
+            if (entry.contains("CuriosType", net.minecraft.nbt.Tag.TAG_STRING)
+                    && ModList.get().isLoaded("curios")) {
+                restored = restoreCuriosSlot(player, entry, stack);
+            }
+            if (!restored && !player.getInventory().add(stack)) player.drop(stack, false);
+        }
+        data.remove(SAVED_ATLASES);
+    }
+
+    private boolean restoreCuriosSlot(ServerPlayer player, CompoundTag entry, ItemStack stack) {
+        return CuriosApi.getCuriosHelper().getCuriosHandler(player).map(curios -> {
+            var handler = curios.getCurios().get(entry.getString("CuriosType"));
+            if (handler == null) return false;
+            var stacks = handler.getStacks();
+            int slot = entry.getInt("CuriosSlot");
+            if (slot < 0 || slot >= stacks.getSlots() || !stacks.getStackInSlot(slot).isEmpty()) return false;
+            stacks.setStackInSlot(slot, stack);
+            return true;
+        }).orElse(false);
     }
 
     @SubscribeEvent
