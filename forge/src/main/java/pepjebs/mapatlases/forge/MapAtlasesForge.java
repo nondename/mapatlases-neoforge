@@ -5,13 +5,12 @@ import net.mehvahdjukaar.moonlight.api.platform.PlatHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.enchanting.EnchantmentLevelSetEvent;
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraftforge.fml.ModList;
+import top.theillusivec4.curios.api.CuriosApi;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -99,6 +98,22 @@ public class MapAtlasesForge {
                 saved.add(stack.save(new CompoundTag()));
                 inv.setItem(i, ItemStack.EMPTY);
             }
+        }
+        // Curios slots are stored in a separate capability, not Player.Inventory.
+        // Remove the protected atlas before GraveStone/Curios death-drop handlers run.
+        if (ModList.get().isLoaded("curios")) {
+            CuriosApi.getCuriosInventory(player).ifPresent(curios -> {
+                curios.getCurios().forEach((slotType, handler) -> {
+                    var stacks = handler.getStacks();
+                    for (int i = 0; i < stacks.getSlots(); i++) {
+                        ItemStack stack = stacks.getStackInSlot(i);
+                        if (FallenSpirit.protects(stack)) {
+                            saved.add(stack.save(new CompoundTag()));
+                            stacks.setStackInSlot(i, ItemStack.EMPTY);
+                        }
+                    }
+                });
+            });
         }
         if (!saved.isEmpty()) player.getPersistentData().put(SAVED_ATLASES, saved);
     }
