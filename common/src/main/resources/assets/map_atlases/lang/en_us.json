@@ -46,5 +46,6 @@
   "message.map_atlases.coordinates": "%d, %d",
   "message.map_atlases.coordinates_full": "%d, %d, %d",
   "message.map_atlases.worldmap_coords": "X: %d, Z: %d",
-  "message.map_atlases.chunk_coordinates": "%d, %d [%d, %d]"
+  "message.map_atlases.chunk_coordinates": "%d, %d [%d, %d]",
+  "enchantment.map_atlases.fallen_spirit": "Fallen Spirit"
 }
