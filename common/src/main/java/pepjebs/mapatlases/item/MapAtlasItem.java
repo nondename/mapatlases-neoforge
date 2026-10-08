@@ -39,6 +39,16 @@ public class MapAtlasItem extends Item {
     public static final String HEIGHT_NBT = "height";
     public static final String TYPE_NBT = "type";
 
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return stack.getCount() == 1;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return 1;
+    }
+
     public MapAtlasItem(Properties settings) {
         super(settings);
     }
