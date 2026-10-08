@@ -102,7 +102,7 @@ public class MapAtlasesForge {
         // Curios slots are stored in a separate capability, not Player.Inventory.
         // Remove the protected atlas before GraveStone/Curios death-drop handlers run.
         if (ModList.get().isLoaded("curios")) {
-            CuriosApi.getCuriosInventory(player).ifPresent(curios -> {
+            CuriosApi.getCuriosHelper().getCuriosHandler(player).ifPresent(curios -> {
                 curios.getCurios().forEach((slotType, handler) -> {
                     var stacks = handler.getStacks();
                     for (int i = 0; i < stacks.getSlots(); i++) {
